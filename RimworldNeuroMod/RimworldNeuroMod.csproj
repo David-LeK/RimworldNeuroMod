@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+		<LangVersion>preview</LangVersion>
+		<AssemblyName>NeuroPlaysRimworld</AssemblyName>
+		<OutputType>Library</OutputType>
+		<RimWorldPath>D:\RimWorld</RimWorldPath>
+		<ModFolderName>NeuroPlaysRimworld</ModFolderName>
+	</PropertyGroup>
+
+	<ItemDefinitionGroup>
+		<Reference>
+			<Private>false</Private>
+		</Reference>
+	</ItemDefinitionGroup>
+
+	<ItemGroup>
+		<Reference Include="0Harmony">
+			<HintPath>$(RimWorldPath)\Mods\HarmonyMod\Current\Assemblies\0Harmony.dll</HintPath>
+		</Reference>
+		<Reference Include="Assembly-CSharp">
+			<HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="UnityEngine.Modules" Version="2021.3.33" ExcludeAssets="runtime" />
+		<PackageReference Include="VedalAI.NeuroSdk.Unity" Version="1.2.1" GeneratePathProperty="true" />
+	</ItemGroup>
+
+	<Target Name="DeployMod" AfterTargets="Build">
+		<PropertyGroup>
+			<ModDeployPath>$(RimWorldPath)\Mods\$(ModFolderName)</ModDeployPath>
+			<AssembliesDeployPath>$(ModDeployPath)\Assemblies</AssembliesDeployPath>
+			<AboutDeployPath>$(ModDeployPath)\About</AboutDeployPath>
+		</PropertyGroup>
+
+		<Message Text="--- Deploying Mod by Copying DLLs to $(ModDeployPath) ---" Importance="high" />
+
+		<RemoveDir Directories="$(AssembliesDeployPath)" ContinueOnError="true" />
+		<RemoveDir Directories="$(AboutDeployPath)" ContinueOnError="true" />
+
+		<MakeDir Directories="$(AssembliesDeployPath)" />
+		<MakeDir Directories="$(AboutDeployPath)" />
+
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(AssembliesDeployPath)" />
+
+		<Copy SourceFiles="About.xml" DestinationFolder="$(AboutDeployPath)" />
+		
+		<ItemGroup>
+			<SdkDependencies Include="$(PkgVedalAI_NeuroSdk_Unity)\_res\endel.nativewebsocket.dll" />
+			<SdkDependencies Include="$(PkgVedalAI_NeuroSdk_Unity)\_res\Newtonsoft.Json.dll" />
+			<SdkDependencies Include="$(PkgVedalAI_NeuroSdk_Unity)\_res\UniTask.dll" />
+		</ItemGroup>
+
+		<Copy SourceFiles="@(SdkDependencies)" DestinationFolder="$(AssembliesDeployPath)" />
+
+		<Message Text="--- Mod deployment finished successfully! ---" Importance="high" />
+	</Target>
+
+</Project>

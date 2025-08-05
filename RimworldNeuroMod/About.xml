@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+    <name>Neuro Plays Rimworld</name>
+    <author>DavidLek</author>
+    <supportedVersions>
+        <li>1.6</li>
+    </supportedVersions>
+    <packageId>DavidLek.NeuroPlaysRimworld.Main</packageId>
+    <description>Neuro-sama takes control of a RimWorld colony via the Neuro-Game-SDK.</description>
+</ModMetaData>
