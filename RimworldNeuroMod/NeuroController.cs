@@ -56,6 +56,7 @@ namespace NeuroPlaysRimworld
                     string gameStateSummary = GetGameStateAsText();
                     Context.Send(gameStateSummary, silent: true);
                     Log.Message("[Neuro] Sent periodic context update.");
+                    RefreshActions();
                 }
             }
         }
@@ -63,7 +64,7 @@ namespace NeuroPlaysRimworld
         private void RegisterAllActions()
         {
             if (_actionsRegistered) return;
-            Log.Message("[Neuro] Map loaded. Registering all available actions for Neuro.");
+            Log.Message("[Neuro] Registering all available actions for Neuro.");
             _registeredActions.Clear();
             _registeredActions.Add(new PrioritizeWorkAction());
             _registeredActions.Add(new SpawnEventAction());
@@ -72,6 +73,7 @@ namespace NeuroPlaysRimworld
             _registeredActions.Add(new ChangeWeatherAction());
             _registeredActions.Add(new DropPodRaidAction());
             _registeredActions.Add(new SetResearchProjectAction());
+            _registeredActions.Add(new ForceMentalBreakAction());
 
             NeuroActionHandler.RegisterActions(_registeredActions);
             _actionsRegistered = true;
@@ -80,7 +82,7 @@ namespace NeuroPlaysRimworld
         private void UnregisterAllActions()
         {
             if (!_actionsRegistered) return;
-            Log.Message("[Neuro] Map unloaded. Unregistering all actions.");
+            Log.Message("[Neuro] Unregistering all actions.");
             NeuroActionHandler.UnregisterActions(_registeredActions);
             _registeredActions.Clear();
             _actionsRegistered = false;
@@ -90,7 +92,7 @@ namespace NeuroPlaysRimworld
         {
             if (!_actionsRegistered) return;
 
-            Log.Message("[Neuro] Forcing action refresh due to game state change.");
+            Log.Message("[Neuro] Action refresh.");
             UnregisterAllActions();
             RegisterAllActions();
         }
@@ -99,7 +101,7 @@ namespace NeuroPlaysRimworld
         {
             if (!_actionsRegistered) return;
 
-            var oldAction = _registeredActions.FirstOrDefault(a => a is T);
+            var oldAction = _registeredActions.FirstOrDefault(a => a is T);
 
             if (oldAction != null)
             {
@@ -108,10 +110,10 @@ namespace NeuroPlaysRimworld
                 NeuroActionHandler.UnregisterActions(new List<INeuroAction> { oldAction });
                 _registeredActions.Remove(oldAction);
 
-                var newAction = new T();
+                var newAction = new T();
                 _registeredActions.Add(newAction);
 
-                NeuroActionHandler.RegisterActions(new List<INeuroAction> { newAction });
+                NeuroActionHandler.RegisterActions(new List<INeuroAction> { newAction });
 
                 Log.Message($"[Neuro] Action '{newAction.Name}' has been refreshed successfully.");
             }
