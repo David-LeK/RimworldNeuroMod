@@ -71,6 +71,7 @@ namespace NeuroPlaysRimworld
             _registeredActions.Add(new SpawnPawnsAction());
             _registeredActions.Add(new ChangeWeatherAction());
             _registeredActions.Add(new DropPodRaidAction());
+            _registeredActions.Add(new SetResearchProjectAction());
 
             NeuroActionHandler.RegisterActions(_registeredActions);
             _actionsRegistered = true;
@@ -83,6 +84,41 @@ namespace NeuroPlaysRimworld
             NeuroActionHandler.UnregisterActions(_registeredActions);
             _registeredActions.Clear();
             _actionsRegistered = false;
+        }
+
+        public void RefreshActions()
+        {
+            if (!_actionsRegistered) return;
+
+            Log.Message("[Neuro] Forcing action refresh due to game state change.");
+            UnregisterAllActions();
+            RegisterAllActions();
+        }
+
+        public void RefreshAction<T>() where T : INeuroAction, new()
+        {
+            if (!_actionsRegistered) return;
+
+            var oldAction = _registeredActions.FirstOrDefault(a => a is T);
+
+            if (oldAction != null)
+            {
+                Log.Message($"[Neuro] Refreshing dynamic action: {oldAction.Name}");
+
+                NeuroActionHandler.UnregisterActions(new List<INeuroAction> { oldAction });
+                _registeredActions.Remove(oldAction);
+
+                var newAction = new T();
+                _registeredActions.Add(newAction);
+
+                NeuroActionHandler.RegisterActions(new List<INeuroAction> { newAction });
+
+                Log.Message($"[Neuro] Action '{newAction.Name}' has been refreshed successfully.");
+            }
+            else
+            {
+                Log.Warning($"[Neuro] Attempted to refresh an action of type '{typeof(T).Name}', but it was not found in the registered actions list.");
+            }
         }
 
         private string GetGameStateAsText()
