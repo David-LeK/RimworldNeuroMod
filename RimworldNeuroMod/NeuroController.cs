@@ -75,6 +75,7 @@ namespace NeuroPlaysRimworld
             _registeredActions.Add(new SetResearchProjectAction());
             _registeredActions.Add(new ForceMentalBreakAction());
             _registeredActions.Add(new SetColonistDraftStatusAction());
+            _registeredActions.Add(new ArmColonistsAction());
 
             NeuroActionHandler.RegisterActions(_registeredActions);
             _actionsRegistered = true;
