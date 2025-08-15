@@ -198,8 +198,9 @@ namespace NeuroPlaysRimworld
                 foreach (var p in colonists)
                 {
                     string health = $"Health: {(p.health.summaryHealth.SummaryHealthPercent * 100):F0}%";
-                    string job = p.CurJob != null ? $"Doing: {p.GetJobReport()}" : "Idle";
-                    sb.AppendLine($"- **{p.Name.ToStringShort}**: {job} ({health})");
+                    string mood = p.needs?.mood != null ? $"Mood: {p.needs.mood.CurLevelPercentage * 100:F0}% (Break @ {p.mindState.mentalBreaker.BreakThresholdMinor * 100:F0}%)" : "No mood";
+                    string job = p.CurJob != null ? p.GetJobReport().CapitalizeFirst() : "Idle";
+                    sb.AppendLine($"- **{p.Name.ToStringShort}**: {job} ({health}, {mood})");
                 }
             }
             else
@@ -222,6 +223,27 @@ namespace NeuroPlaysRimworld
             else
             {
                 sb.AppendLine("No tamed animals.");
+            }
+
+            sb.AppendLine("\n## Prisoners");
+            var prisoners = map.mapPawns.PrisonersOfColony.OrderBy(p => p.Name.ToStringShort).ToList();
+            if (prisoners.Any())
+            {
+                foreach (var p in prisoners)
+                {
+                    string difficulty = $"Resistance: {p.guest.Resistance:F1}";
+                    var injuries = p.health.hediffSet.hediffs
+                        .OfType<Hediff_Injury>()
+                        .GroupBy(h => h.Label)
+                        .Select(g => g.Count() > 1 ? $"{g.Key} x{g.Count()}" : g.Key)
+                        .ToList();
+                    string injuryReport = injuries.Any() ? $"Injuries: {string.Join(", ", injuries)}" : "No major injuries";
+                    sb.AppendLine($"- **{p.Name.ToStringShort}**: ({difficulty}). {injuryReport}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("No prisoners.");
             }
 
             sb.AppendLine("\n## Resources");
