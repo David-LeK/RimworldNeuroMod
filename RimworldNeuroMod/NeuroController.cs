@@ -118,6 +118,7 @@ namespace NeuroPlaysRimworld
             _registeredGameActions.Add(new ArmIndividuallyAction());
             _registeredGameActions.Add(new FightAction());
             _registeredGameActions.Add(new ManageAnimalAction());
+            _registeredGameActions.Add(new ForbidItemAction());
 
             // --- Storyteller-only Actions ---
             if (NeuroRimMod.settings.selectedMode == NeuroMode.Storyteller)
