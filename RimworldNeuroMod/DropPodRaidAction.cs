@@ -43,7 +43,6 @@ namespace NeuroPlaysRimworld
                 foreach (var faction in potentialFactions)
                 {
                     bool isHostile = faction.HostileTo(Faction.OfPlayer);
-                    Log.Message("fact: " + faction.Name + ", hostile: " + isHostile);
                     string hostilityLabel = isHostile ? "Hostile" : "Neutral";
                     factionChoices.Add($"{faction.Name} ({hostilityLabel})");
                 }
