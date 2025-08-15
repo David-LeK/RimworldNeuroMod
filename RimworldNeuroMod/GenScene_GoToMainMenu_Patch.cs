@@ -10,8 +10,8 @@ namespace NeuroPlaysRimworld
         {
             if (NeuroRimModStartup.Controller != null)
             {
-                Log.Message("[Neuro] Player is returning to the main menu. Unregistering actions.");
-                NeuroRimModStartup.Controller.UnregisterAllActions();
+                Log.Message("[Neuro] Player is returning to the main menu. Unregistering game actions.");
+                NeuroRimModStartup.Controller.UnregisterGameActions();
             }
         }
     }
