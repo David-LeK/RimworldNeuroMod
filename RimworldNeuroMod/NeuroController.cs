@@ -64,27 +64,36 @@ namespace NeuroPlaysRimworld
         private void RegisterAllActions()
         {
             if (_actionsRegistered) return;
-            Log.Message("[Neuro] Registering all available actions for Neuro.");
+
             _registeredActions.Clear();
+
+            Log.Message($"[Neuro] Registering actions for '{NeuroRimMod.settings.selectedMode}' mode.");
+
+            // --- Player Actions (available in both modes) ---
             _registeredActions.Add(new PrioritizeWorkAction());
-            _registeredActions.Add(new SpawnEventAction());
-            _registeredActions.Add(new SpawnThingsAction());
-            _registeredActions.Add(new SpawnPawnsAction());
-            _registeredActions.Add(new ChangeWeatherAction());
-            _registeredActions.Add(new DropPodRaidAction());
             _registeredActions.Add(new SetResearchProjectAction());
-            _registeredActions.Add(new ForceMentalBreakAction());
             _registeredActions.Add(new SetColonistDraftStatusAction());
             _registeredActions.Add(new ArmColonistsAction());
             _registeredActions.Add(new ArmIndividuallyAction());
             _registeredActions.Add(new FightAction());
             _registeredActions.Add(new ManageAnimalAction());
 
+            // --- Storyteller-only Actions ---
+            if (NeuroRimMod.settings.selectedMode == NeuroMode.Storyteller)
+            {
+                _registeredActions.Add(new SpawnEventAction());
+                _registeredActions.Add(new SpawnThingsAction());
+                _registeredActions.Add(new SpawnPawnsAction());
+                _registeredActions.Add(new ChangeWeatherAction());
+                _registeredActions.Add(new DropPodRaidAction());
+                _registeredActions.Add(new ForceMentalBreakAction());
+            }
+
             NeuroActionHandler.RegisterActions(_registeredActions);
             _actionsRegistered = true;
         }
 
-        private void UnregisterAllActions()
+        public void UnregisterAllActions()
         {
             if (!_actionsRegistered) return;
             Log.Message("[Neuro] Unregistering all actions.");

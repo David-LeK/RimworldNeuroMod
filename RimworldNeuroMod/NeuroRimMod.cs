@@ -22,6 +22,28 @@ namespace NeuroPlaysRimworld
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
 
+            listingStandard.Label("Neuro's Power Level:");
+            listingStandard.Gap(6f);
+
+            Rect storytellerRect = listingStandard.GetRect(24f);
+            if (Widgets.RadioButtonLabeled(storytellerRect, "Storyteller (God Mode)", settings.selectedMode == NeuroMode.Storyteller))
+            {
+                settings.selectedMode = NeuroMode.Storyteller;
+            }
+            TooltipHandler.TipRegion(storytellerRect, "Allows Neuro to use powerful, cheat-like actions like spawning items, raids, and changing the weather.");
+
+            Rect playerRect = listingStandard.GetRect(24f);
+            if (Widgets.RadioButtonLabeled(playerRect, "Player (Normal Mode)", settings.selectedMode == NeuroMode.Player))
+            {
+                settings.selectedMode = NeuroMode.Player;
+            }
+            TooltipHandler.TipRegion(playerRect, "Restricts Neuro to actions a normal player can perform, like managing work, drafting colonists, and designating targets.");
+
+            listingStandard.Gap(24f);
+            listingStandard.Label("Advanced Connection Settings");
+            listingStandard.GapLine();
+            listingStandard.Gap(12f);
+
             listingStandard.Label("Custom WebSocket URL:");
 
             Widgets.Label(listingStandard.GetRect(22f), "This will be used if the NEURO_SDK_WS_URL environment variable is not set.");
