@@ -37,21 +37,17 @@ namespace NeuroPlaysRimworld
                 var map = Find.CurrentMap;
                 if (map == null) return new JsonSchema();
 
-                var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
                 var factionChoices = new List<string>();
                 var potentialFactions = Find.FactionManager.AllFactions;
 
                 foreach (var faction in potentialFactions)
                 {
-                    if (!((IncidentWorker_PawnsArrive)(faction.HostileTo(Faction.OfPlayer) ? IncidentDefOf.RaidEnemy : IncidentDefOf.RaidFriendly).Worker).FactionCanBeGroupSource(faction, parms))
-                    {
-                        factionChoices.Add($"{faction.Name} (Neutral)");
-                    } else
-                    {
-                        factionChoices.Add($"{faction.Name} (Hostile)");
-                    }
+                    bool isHostile = faction.HostileTo(Faction.OfPlayer);
+                    Log.Message("fact: " + faction.Name + ", hostile: " + isHostile);
+                    string hostilityLabel = isHostile ? "Hostile" : "Neutral";
+                    factionChoices.Add($"{faction.Name} ({hostilityLabel})");
                 }
-                factionChoices.Sort();
+                factionChoices.Sort();
 
                 var points = DebugActionsUtility.PointsOptions(true).Cast<object>().ToList();
                 var radii = DebugActionsUtility.RadiusOptions().Cast<object>().ToList();
@@ -143,9 +139,9 @@ namespace NeuroPlaysRimworld
             }
 
             if (!RCellFinder.TryFindRandomCellNearTheCenterOfTheMapWith(
-                c => c.Standable(map) && !c.Roofed(map) && map.reachability.CanReachColony(c),
-                map,
-                out var spawnCenter))
+              c => c.Standable(map) && !c.Roofed(map) && map.reachability.CanReachColony(c),
+              map,
+              out var spawnCenter))
             {
                 Log.Warning("[Neuro] Could not find a suitable random location for the drop pod raid. Using map center as fallback.");
                 spawnCenter = map.Center;

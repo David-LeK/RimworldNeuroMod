@@ -128,6 +128,7 @@ namespace NeuroPlaysRimworld
                 _registeredGameActions.Add(new ChangeWeatherAction());
                 _registeredGameActions.Add(new DropPodRaidAction());
                 _registeredGameActions.Add(new ForceMentalBreakAction());
+                _registeredGameActions.Add(new ChangeFactionRelationsAction());
             }
 
             NeuroActionHandler.RegisterActions(_registeredGameActions);
