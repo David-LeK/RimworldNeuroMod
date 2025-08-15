@@ -78,6 +78,7 @@ namespace NeuroPlaysRimworld
             _registeredActions.Add(new ArmColonistsAction());
             _registeredActions.Add(new ArmIndividuallyAction());
             _registeredActions.Add(new FightAction());
+            _registeredActions.Add(new ManageAnimalAction());
 
             NeuroActionHandler.RegisterActions(_registeredActions);
             _actionsRegistered = true;
