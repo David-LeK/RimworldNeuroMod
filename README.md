@@ -12,13 +12,12 @@ This mod allows the AI VTuber **[Neuro-sama](https://twitch.tv/vedal987)** to ta
 
 ## ✨ Features
 
-* Neuro can manage colonist work priorities to guide the colony's focus.
-* She can trigger a wide variety of friendly, hostile, and environmental events.
-* She can spawn items, resources, buildings, and even new pawns (animals or people) directly onto the map.
-* She can change the current weather instantly.
-* She can initiate drop pod raids, controlling their faction, size, and hostility.
-* The mod sends periodic, detailed reports about the colony's status to Neuro, keeping her informed about colonists, resources, power, research, and threats.
-* The mod activates automatically when a map is loaded and deactivates when returning to the main menu.
+  * **Two Operation Modes**: Choose between **Storyteller Mode** for god-like powers (spawning raids, items, etc.) and **Player Mode** for a more standard gameplay experience (managing work, drafting, etc.).
+  * **Colonist Management**: Neuro can manage colonist work priorities, set research projects, draft/undraft them, forbid items, and designate animals for hunting, taming, or slaughter.
+  * **Combat Control**: She can arm colonists with the best available weapons or assign specific weapons to individuals. She can also order colonists to attack specific targets.
+  * **Storyteller Powers**: In Storyteller mode, Neuro can trigger a wide variety of friendly, hostile, and environmental events, change the weather, spawn items and pawns, initiate drop pod raids, alter faction relations, and even force mental breaks or inspirations.
+  * **Comprehensive Reporting**: The mod sends periodic, detailed reports about the colony's status to Neuro, keeping her informed about colonists, resources, power, research, and threats.
+  * **Automatic Activation**: The mod's features activate automatically when a map is loaded and deactivate when returning to the main menu.
 
 ## 🔧 How It Works
 
@@ -111,14 +110,30 @@ The mod will log which URL it is using in the RimWorld developer console (`~` ke
 
 ## 🧠 Neuro's Abilities (Actions)
 
+### Player Actions (Available in Both Modes)
+
 | Action Name | Description |
 | :--- | :--- |
-| **`set_work_priority`** | Sets the priority (1-4) of a specific job for any colonist. |
-| **`spawn_event`** | Triggers a random event, like a raid, solar flare, or trade caravan. |
+| **`set_work_priority`** | Sets the priority (0-4) of a specific job for any colonist. |
+| **`set_research_project`** | Selects the colony's active research project from available technologies. |
+| **`set_colonist_draft_status`**| Toggles a colonist's drafted mode on or off. |
+| **`arm_colonists`** | Arms all capable, unarmed colonists with the best available weapons. |
+| **`arm_individually`** | Orders a specific colonist to equip a specific weapon. |
+| **`fight`** | Orders a colonist to attack a specific enemy or animal, drafting them if necessary. |
+| **`manage_animal`** | Designates wild animals to be hunted/tamed, or colony animals for slaughter. |
+| **`forbid_item`** | Forbids or unforbids a specific stack of items on the ground. |
+
+### Storyteller-Only Actions
+
+| Action Name | Description |
+| :--- | :--- |
+| **`spawn_event`** | Triggers a world event. Can be hostile, friendly, or a resource drop. |
 | **`spawn_item`** | Spawns a specific item, resource, or building on the map. |
 | **`spawn_pawn`** | Spawns a new pawn (animal or person), with an optional custom name. |
-| **`change_weather`** | Changes the current weather on the map to a new one. |
+| **`change_weather`** | Instantly changes the current weather on the map. |
 | **`drop_pod_raid_random`** | Initiates a drop pod raid with a chosen faction, size, and hostility. |
+| **`force_mental_break`** | Triggers a specific mental break (or inspiration) on a chosen colonist. |
+| **`change_faction_relations`**| Instantly alters the colony's relationship with a non-player faction. |
 
 ## 🔗 Dependencies
 

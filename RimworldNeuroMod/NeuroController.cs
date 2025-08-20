@@ -15,13 +15,15 @@ namespace NeuroPlaysRimworld
     public class NeuroController : MonoBehaviour
     {
         private volatile bool isSdkReady = false;
-        private bool _actionsRegistered = false;
-        private readonly List<INeuroAction> _registeredActions = new List<INeuroAction>();
+        private bool _gameActionsRegistered = false;
+        private bool _menuActionsRegistered = false;
+        private readonly List<INeuroAction> _registeredGameActions = new List<INeuroAction>();
+        private readonly List<INeuroAction> _registeredMenuActions = new List<INeuroAction>();
 
         private float contextTimer = 0f;
         private const float CONTEXT_UPDATE_INTERVAL = 1500f;
 
-        public void GameUpdate()
+        public void Update()
         {
             if (!isSdkReady)
             {
@@ -38,51 +40,144 @@ namespace NeuroPlaysRimworld
 
             bool isMapReady = Current.Game != null && Current.Game.CurrentMap != null && Find.TickManager.TicksGame > 100;
 
-            if (isMapReady && !_actionsRegistered)
+            if (isMapReady)
             {
-                RegisterAllActions();
-            }
-            else if (!isMapReady && _actionsRegistered)
-            {
-                UnregisterAllActions();
-            }
-
-            if (_actionsRegistered && !Find.TickManager.Paused)
-            {
-                contextTimer += 1f;
-                if (contextTimer >= CONTEXT_UPDATE_INTERVAL)
+                // In a game
+                if (_menuActionsRegistered)
                 {
-                    contextTimer = 0f;
-                    string gameStateSummary = GetGameStateAsText();
-                    Context.Send(gameStateSummary, silent: true);
-                    Log.Message("[Neuro] Sent periodic context update.");
+                    UnregisterMenuActions();
+                }
+                if (!_gameActionsRegistered)
+                {
+                    RegisterGameActions();
+                }
+
+                // Context updates only happen in-game
+                if (_gameActionsRegistered && !Find.TickManager.Paused)
+                {
+                    contextTimer += 1f;
+                    if (contextTimer >= CONTEXT_UPDATE_INTERVAL)
+                    {
+                        contextTimer = 0f;
+                        string gameStateSummary = GetGameStateAsText();
+                        Context.Send(gameStateSummary, silent: true);
+                        Log.Message("[Neuro] Sent periodic context update.");
+                        RefreshActions();
+                    }
+                }
+            }
+            else
+            {
+                // Not in a game (e.g., main menu)
+                if (_gameActionsRegistered)
+                {
+                    UnregisterGameActions();
+                }
+                if (!_menuActionsRegistered)
+                {
+                    RegisterMenuActions();
                 }
             }
         }
 
-        private void RegisterAllActions()
+        private void RegisterMenuActions()
         {
-            if (_actionsRegistered) return;
-            Log.Message("[Neuro] Map loaded. Registering all available actions for Neuro.");
-            _registeredActions.Clear();
-            _registeredActions.Add(new PrioritizeWorkAction());
-            _registeredActions.Add(new SpawnEventAction());
-            _registeredActions.Add(new SpawnThingsAction());
-            _registeredActions.Add(new SpawnPawnsAction());
-            _registeredActions.Add(new ChangeWeatherAction());
-            _registeredActions.Add(new DropPodRaidAction());
+            if (_menuActionsRegistered) return;
 
-            NeuroActionHandler.RegisterActions(_registeredActions);
-            _actionsRegistered = true;
+            _registeredMenuActions.Clear();
+            Log.Message("[Neuro] Registering main menu actions.");
+
+            _registeredMenuActions.Add(new QuickStartAction());
+
+            NeuroActionHandler.RegisterActions(_registeredMenuActions);
+            _menuActionsRegistered = true;
         }
 
-        private void UnregisterAllActions()
+        private void UnregisterMenuActions()
         {
-            if (!_actionsRegistered) return;
-            Log.Message("[Neuro] Map unloaded. Unregistering all actions.");
-            NeuroActionHandler.UnregisterActions(_registeredActions);
-            _registeredActions.Clear();
-            _actionsRegistered = false;
+            if (!_menuActionsRegistered) return;
+            Log.Message("[Neuro] Unregistering main menu actions.");
+            NeuroActionHandler.UnregisterActions(_registeredMenuActions);
+            _registeredMenuActions.Clear();
+            _menuActionsRegistered = false;
+        }
+
+        private void RegisterGameActions()
+        {
+            if (_gameActionsRegistered) return;
+
+            _registeredGameActions.Clear();
+
+            Log.Message($"[Neuro] Registering actions for '{NeuroRimMod.settings.selectedMode}' mode.");
+
+            // --- Player Actions (available in both modes) ---
+            _registeredGameActions.Add(new PrioritizeWorkAction());
+            _registeredGameActions.Add(new SetResearchProjectAction());
+            _registeredGameActions.Add(new SetColonistDraftStatusAction());
+            _registeredGameActions.Add(new ArmColonistsAction());
+            _registeredGameActions.Add(new ArmIndividuallyAction());
+            _registeredGameActions.Add(new FightAction());
+            _registeredGameActions.Add(new ManageAnimalAction());
+            _registeredGameActions.Add(new ForbidItemAction());
+
+            // --- Storyteller-only Actions ---
+            if (NeuroRimMod.settings.selectedMode == NeuroMode.Storyteller)
+            {
+                _registeredGameActions.Add(new SpawnEventAction());
+                _registeredGameActions.Add(new SpawnThingsAction());
+                _registeredGameActions.Add(new SpawnPawnsAction());
+                _registeredGameActions.Add(new ChangeWeatherAction());
+                _registeredGameActions.Add(new DropPodRaidAction());
+                _registeredGameActions.Add(new ForceMentalBreakAction());
+                _registeredGameActions.Add(new ChangeFactionRelationsAction());
+            }
+
+            NeuroActionHandler.RegisterActions(_registeredGameActions);
+            _gameActionsRegistered = true;
+        }
+
+        public void UnregisterGameActions()
+        {
+            if (!_gameActionsRegistered) return;
+            Log.Message("[Neuro] Unregistering all game actions.");
+            NeuroActionHandler.UnregisterActions(_registeredGameActions);
+            _registeredGameActions.Clear();
+            _gameActionsRegistered = false;
+        }
+
+        public void RefreshActions()
+        {
+            if (!_gameActionsRegistered) return;
+
+            Log.Message("[Neuro] Action refresh.");
+            UnregisterGameActions();
+            RegisterGameActions();
+        }
+
+        public void RefreshAction<T>() where T : INeuroAction, new()
+        {
+            if (!_gameActionsRegistered) return;
+
+            var oldAction = _registeredGameActions.FirstOrDefault(a => a is T);
+
+            if (oldAction != null)
+            {
+                Log.Message($"[Neuro] Refreshing dynamic action: {oldAction.Name}");
+
+                NeuroActionHandler.UnregisterActions(new List<INeuroAction> { oldAction });
+                _registeredGameActions.Remove(oldAction);
+
+                var newAction = new T();
+                _registeredGameActions.Add(newAction);
+
+                NeuroActionHandler.RegisterActions(new List<INeuroAction> { newAction });
+
+                Log.Message($"[Neuro] Action '{newAction.Name}' has been refreshed successfully.");
+            }
+            else
+            {
+                Log.Warning($"[Neuro] Attempted to refresh an action of type '{typeof(T).Name}', but it was not found in the registered actions list.");
+            }
         }
 
         private string GetGameStateAsText()
@@ -103,8 +198,9 @@ namespace NeuroPlaysRimworld
                 foreach (var p in colonists)
                 {
                     string health = $"Health: {(p.health.summaryHealth.SummaryHealthPercent * 100):F0}%";
-                    string job = p.CurJob != null ? $"Doing: {p.GetJobReport()}" : "Idle";
-                    sb.AppendLine($"- **{p.Name.ToStringShort}**: {job} ({health})");
+                    string mood = p.needs?.mood != null ? $"Mood: {p.needs.mood.CurLevelPercentage * 100:F0}% (Break @ {p.mindState.mentalBreaker.BreakThresholdMinor * 100:F0}%)" : "No mood";
+                    string job = p.CurJob != null ? p.GetJobReport().CapitalizeFirst() : "Idle";
+                    sb.AppendLine($"- **{p.Name.ToStringShort}**: {job} ({health}, {mood})");
                 }
             }
             else
@@ -127,6 +223,27 @@ namespace NeuroPlaysRimworld
             else
             {
                 sb.AppendLine("No tamed animals.");
+            }
+
+            sb.AppendLine("\n## Prisoners");
+            var prisoners = map.mapPawns.PrisonersOfColony.OrderBy(p => p.Name.ToStringShort).ToList();
+            if (prisoners.Any())
+            {
+                foreach (var p in prisoners)
+                {
+                    string difficulty = $"Resistance: {p.guest.Resistance:F1}";
+                    var injuries = p.health.hediffSet.hediffs
+                        .OfType<Hediff_Injury>()
+                        .GroupBy(h => h.Label)
+                        .Select(g => g.Count() > 1 ? $"{g.Key} x{g.Count()}" : g.Key)
+                        .ToList();
+                    string injuryReport = injuries.Any() ? $"Injuries: {string.Join(", ", injuries)}" : "No major injuries";
+                    sb.AppendLine($"- **{p.Name.ToStringShort}**: ({difficulty}). {injuryReport}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("No prisoners.");
             }
 
             sb.AppendLine("\n## Resources");

@@ -9,12 +9,13 @@ using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using Verse.AI.Group;
 
 namespace NeuroPlaysRimworld
 {
     public class SpawnPawnData
     {
-        public PawnKindDef DefToSpawn;
+        public PawnKindDef DefToSpawn = null!;
         public int Count = 1;
         public string? Name;
     }
@@ -90,29 +91,46 @@ namespace NeuroPlaysRimworld
             return UniTask.CompletedTask;
         }
 
+        private bool TryFindSafeSpawnCell(Map map, out IntVec3 result)
+        {
+            if (RCellFinder.TryFindRandomPawnEntryCell(out result, map, CellFinder.EdgeRoadChance_Hostile))
+            {
+                return true;
+            }
+            if (CellFinder.TryFindRandomCellNear(map.Center, map, 20, c => c.Standable(map) && !c.Roofed(map) && map.reachability.CanReachColony(c), out result))
+            {
+                return true;
+            }
+            return CellFinder.TryFindRandomCell(map, c => c.Standable(map) && !c.Fogged(map), out result);
+        }
+
         private void SpawnPawns(Map map, PawnKindDef pawnKindDef, int count, string? name)
         {
-            Faction? faction = null;
-            if (pawnKindDef.race.race.Animal) faction = null;
-            else if (pawnKindDef.race.race.IsMechanoid) faction = Faction.OfMechanoids;
-            else
-            {
-                if (!Find.FactionManager.AllFactions.Where(f => f.def == pawnKindDef.defaultFactionDef).TryRandomElement(out faction))
-                {
-                    faction = Faction.OfAncientsHostile;
-                }
-            }
+            Faction? faction = FactionUtility.DefaultFactionFrom(pawnKindDef.defaultFactionDef);
 
             for (int i = 0; i < count; i++)
             {
-                if (!RCellFinder.TryFindRandomPawnEntryCell(out var spawnCell, map, CellFinder.EdgeRoadChance_Hostile))
+                if (!TryFindSafeSpawnCell(map, out var spawnCell))
                 {
-                    Log.Warning($"[Neuro] Could not find a valid entry cell for pawn {i + 1}/{count}.");
-                    continue;
+                    Log.Error($"[Neuro] Could not find any valid spawn cell for pawn '{pawnKindDef.defName}'. Aborting spawn.");
+                    break;
                 }
 
-                var request = new PawnGenerationRequest(pawnKindDef, faction, forceGenerateNewPawn: true);
+                var request = new PawnGenerationRequest(
+                    kind: pawnKindDef,
+                    faction: faction,
+                    context: PawnGenerationContext.NonPlayer,
+                    forceGenerateNewPawn: true,
+                    allowDowned: true,
+                    canGeneratePawnRelations: true
+                );
+
                 var pawn = PawnGenerator.GeneratePawn(request);
+                if (pawn == null)
+                {
+                    Log.Error($"[Neuro] PawnGenerator failed to generate pawn for kindDef {pawnKindDef.defName}.");
+                    continue;
+                }
 
                 if (i == 0 && !string.IsNullOrEmpty(name))
                 {
@@ -120,7 +138,14 @@ namespace NeuroPlaysRimworld
                 }
 
                 GenSpawn.Spawn(pawn, spawnCell, map);
-                Log.Message($"[Neuro] Spawned {pawn.NameShortColored} at edge of map ({spawnCell.x}, {spawnCell.z}).");
+
+                if (pawn.Faction != null && pawn.Faction != Faction.OfPlayer)
+                {
+                    var lordJob = new LordJob_DefendPoint(spawnCell);
+                    LordMaker.MakeNewLord(pawn.Faction, lordJob, map, new[] { pawn });
+                }
+
+                Log.Message($"[Neuro] Spawned {pawn.NameShortColored} at ({spawnCell.x}, {spawnCell.z}).");
             }
         }
     }
