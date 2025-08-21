@@ -145,6 +145,16 @@ namespace NeuroPlaysRimworld
             _gameActionsRegistered = false;
         }
 
+        public void OnQuickStartExecuted()
+        {
+            var quickStartAction = _registeredMenuActions.FirstOrDefault(a => a is QuickStartAction);
+            if (quickStartAction != null)
+            {
+                NeuroActionHandler.UnregisterActions(new List<INeuroAction> { quickStartAction });
+                _registeredMenuActions.Remove(quickStartAction);
+            }
+        }
+
         public void RefreshActions()
         {
             if (!_gameActionsRegistered) return;

@@ -43,6 +43,8 @@ namespace NeuroPlaysRimworld
 
             }, "GeneratingMap", doAsynchronously: true, exceptionHandler: GameAndMapInitExceptionHandlers.ErrorWhileGeneratingMap);
 
+            NeuroRimModStartup.Controller?.OnQuickStartExecuted();
+
             Log.Message("[Neuro] Executed: Starting a quick game.");
             return UniTask.CompletedTask;
         }
